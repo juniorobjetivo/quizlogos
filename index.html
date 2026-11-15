@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz de Digitação - Marcas e Logos</title>
+<style>
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+  }
+
+  body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #e8f4f8;
+    color: #2c3e50;
+    text-align: center;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  /* Barra Superior estilo Digipuzzle */
+  .top-bar {
+    background-color: #ff7f00;
+    color: #ffffff;
+    padding: 10px 18px;
+    border-bottom: 4px solid #cc6600;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .game-title {
+    font-size: 22px;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #b35900;
+    margin: 4px 0;
+  }
+
+  .status-panel {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    margin: 4px 0;
+  }
+
+  .badge {
+    background-color: #ffffff;
+    color: #2c3e50;
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    border: 2px solid #cc6600;
+    margin-right: 10px;
+  }
+
+  .badge span {
+    color: #d35400;
+  }
+
+  .btn {
+    background-color: #2980b9;
+    color: #ffffff;
+    border: 2px solid #1c5980;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .btn:hover {
+    background-color: #3498db;
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  /* Área Principal */
+  .main-container {
+    flex: 1;
+    max-width: 920px;
+    width: 100%;
+    margin: 12px auto;
+    padding: 0 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .quiz-card {
+    background-color: #ffffff;
+    border: 4px solid #3498db;
+    border-radius: 16px;
+    padding: 16px 20px;
+    width: 100%;
+    margin-bottom: 14px;
+    box-shadow: 0 4px 0 #bdd8e9;
+  }
+
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 15px;
+    color: #555555;
+    font-weight: bold;
+  }
+
+  /* Caixa do Logotipo */
+  .logo-box {
+    width: 150px;
+    height: 150px;
+    margin: 4px auto 10px auto;
+    background-color: #ffffff;
+    border: 3px solid #dce6ef;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    overflow: hidden;
+  }
+
+  .logo-box svg,
+  .logo-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+  }
+
+  /* Palavra Guia (Aparece após 10 segundos) */
+  .word-guide {
+    font-size: 28px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    min-height: 36px;
+    line-height: 36px;
+  }
+
+  .word-guide.waiting-guide {
+    color: #7f8c8d;
+    font-size: 18px;
+    letter-spacing: 0;
+    font-weight: bold;
+  }
+
+  .countdown-pill {
+    display: inline-block;
+    background-color: #fff3cd;
+    color: #b35900;
+    border: 2px solid #ffecb5;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 16px;
+    margin-left: 6px;
+  }
+
+  .guide-char-done {
+    color: #27ae60;
+  }
+
+  .guide-char-current {
+    color: #e67e22;
+    text-decoration: underline;
+  }
+
+  /* Caixinhas de Letras */
+  .letter-boxes {
+    text-align: center;
+    margin: 6px 0;
+    min-height: 54px;
+  }
+
+  .word-group {
+    display: inline-block;
+    margin: 3px 8px;
+  }
+
+  .letter-slot {
+    display: inline-block;
+    width: 42px;
+    height: 48px;
+    margin: 0 3px;
+    border: 3px solid #bdc3c7;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    font-size: 26px;
+    font-weight: bold;
+    line-height: 42px;
+    text-align: center;
+    color: #2c3e50;
+    vertical-align: middle;
+  }
+
+  .letter-slot.active-slot {
+    border-color: #ff7f00;
+    background-color: #fff8e7;
+  }
+
+  .letter-slot.filled-slot {
+    border-color: #27ae60;
+    background-color: #2ecc71;
+    color: #ffffff;
+  }
+
+  .letter-slot.error-slot {
+    border-color: #c0392b;
+    background-color: #e74c3c;
+    color: #ffffff;
+  }
+
+  .feedback-msg {
+    min-height: 26px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #27ae60;
+    margin-top: 4px;
+  }
+
+  /* Teclado Virtual Estilo Digipuzzle */
+  .keyboard {
+    background-color: #d6eaf8;
+    border: 3px solid #85c1e9;
+    border-radius: 14px;
+    padding: 10px;
+    width: 100%;
+  }
+
+  .kb-row {
+    text-align: center;
+    margin-bottom: 6px;
+  }
+
+  .kb-row:last-child {
+    margin-bottom: 0;
+  }
+
+  .kb-key {
+    display: inline-block;
+    width: 52px;
+    height: 46px;
+    margin: 0 3px;
+    background-color: #ffffff;
+    border: 2px solid #5dade2;
+    border-bottom-width: 4px;
+    border-radius: 8px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #2c3e50;
+    cursor: pointer;
+    line-height: 40px;
+    text-align: center;
+    vertical-align: middle;
+  }
+
+  .kb-key:hover {
+    background-color: #ebf5fb;
+  }
+
+  .kb-key:active {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+  }
+
+  .kb-key.kb-space {
+    width: 240px;
+    font-size: 16px;
+  }
+
+  /* Modal de Fim de Jogo */
+  .overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.65);
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 16px;
+  }
+
+  .modal {
+    background-color: #ffffff;
+    border: 5px solid #ff7f00;
+    border-radius: 18px;
+    max-width: 480px;
+    width: 100%;
+    padding: 24px 20px;
+    text-align: center;
+  }
+
+  .modal h2 {
+    font-size: 28px;
+    color: #d35400;
+    margin-bottom: 10px;
+  }
+
+  .modal p {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #2c3e50;
+  }
+
+  .modal .big-score {
+    font-size: 36px;
+    font-weight: bold;
+    color: #27ae60;
+    margin: 14px 0;
+  }
+
+  .btn-big {
+    background-color: #27ae60;
+    border: 3px solid #1e8449;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 10px 24px;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 8px;
+  }
+
+  .btn-big:hover {
+    background-color: #2ecc71;
+  }
+
+  /* Rodapé Discreto */
+  footer {
+    padding: 8px;
+    font-size: 13px;
+    color: #5d6d7e;
+    background-color: #d6eaf8;
+    border-top: 2px solid #aed6f1;
+  }
+
+  @media (max-width: 640px) {
+    .kb-key {
+      width: 30px;
+      height: 38px;
+      font-size: 15px;
+      line-height: 32px;
+      margin: 0 1px;
+    }
+    .letter-slot {
+      width: 32px;
+      height: 38px;
+      font-size: 18px;
+      line-height: 32px;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <!-- Topo -->
+  <div class="top-bar">
+    <div class="game-title">&#9000; Quiz de Digitação: Logos</div>
+    <div class="status-panel">
+      <div class="badge">Pontos: <span id="scoreDisplay">0</span></div>
+      <button class="btn" onclick="restartGame()">&#8635; Reiniciar</button>
+    </div>
+  </div>
+
+  <!-- Área Central -->
+  <div class="main-container">
+    <div class="quiz-card">
+      <div class="card-header">
+        <span id="progressText">Logo 1 de 40</span>
+        <span>Observe a logo e digite o nome!</span>
+      </div>
+
+      <div class="logo-box" id="logoContainer"></div>
+
+      <div class="word-guide" id="wordGuide"></div>
+
+      <div class="letter-boxes" id="letterBoxes"></div>
+
+      <div class="feedback-msg" id="feedbackMsg"></div>
+    </div>
+
+    <!-- Teclado Virtual -->
+    <div class="keyboard" id="virtualKeyboard"></div>
+  </div>
+
+  <!-- Tela Final -->
+  <div class="overlay" id="endOverlay">
+    <div class="modal">
+      <h2 id="endTitle">&#127942; Parabéns!</h2>
+      <p id="endSubtitle">Você completou todas as 40 marcas!</p>
+      <div class="big-score" id="finalScoreText">40 palavras</div>
+      <p id="accuracyText"></p>
+      <button class="btn-big" onclick="restartGame()">Jogar Novamente</button>
+    </div>
+  </div>
+
+  <footer>
+    Feito pelo professor Marco Aurélio
+  </footer>
+
+<script>
+// Lista com as 40 marcas e seus logotipos em SVG leve
+var BRANDS = [
+  {
+    name: "WhatsApp",
+    domain: "whatsapp.com",
+    svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#25D366"/><path d="M50 20C33.4 20 20 33 20 49.1c0 5.5 1.6 10.8 4.5 15.4L21 79l15.1-3.9c4.3 2.3 9.1 3.5 13.9 3.5 16.6 0 30-13 30-29.1S66.6 20 50 20z" fill="none" stroke="#FFF" stroke-width="5" stroke-linejoin="round"/><path d="M39 36c-1.5 0-3.5 1.5-3.5 4.5 0 5 4.5 11.5 10.5 16.5 6 5 13 7 16.5 6.5 3.5-.5 5.5-3.5 5.5-5.5 0-1-.5-1.5-1.5-2l-6-3c-1-.5-2 0-2.5 1l-2.5 3c-.5.5-1.5.5-2.5 0-3.5-2-7-5-9-8.5-.5-1-.5-2 0-2.5l2.5-2.5c.5-.5 1-1.5.5-2.5l-3-6c-.5-1-1.5-1.5-2.5-1.5z" fill="#FFF"/></svg>'
+  },
+  {
+    name: "Youtube",
+    domain: "youtube.com",
+    svg: '<svg viewBox="0 0 100 100"><rect x="8" y="22" width="84" height="56" rx="14" fill="#FF0000"/><polygon points="42,35 42,65 66,50" fill="#FFFFFF"/></svg>'
+  },
+  {
+    name: "Chrome",
+    domain: "google.com/chrome",
+    svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#FCC624"/><path d="M13 26A44 44 0 0 1 88 28L50 28Z" fill="#EA4335"/><path d="M13 26A44 44 0 0 0 46 94L66 59L31 59Z" fill="#34A853"/><circle cx="50" cy="50" r="20" fill="#FFFFFF"/><circle cx="50" cy="50" r="15" fill="#4285F4"/></svg>'
+  },
+  {
+    name: "Instagram",
+    domain: "instagram.com",
+    svg: '<svg viewBox="0 0 100 100"><defs><linearGradient id="ig" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#FDCB52"/><stop offset="50%" stop-color="#E1306C"/><stop offset="100%" stop-color="#833AB4"/></linearGradient></defs><rect x="10" y="10" width="80" height="80" rx="22" fill="url(#ig)"/><rect x="22" y="22" width="56" height="56" rx="14" fill="none" stroke="#FFF" stroke-width="6"/><circle cx="50" cy="50" r="14" fill="none" stroke="#FFF" stroke-width="6"/><circle cx="67" cy="33" r="4" fill="#FFF"/></svg>'
+  },
+  {
+    name: "Facebook",
+    domain: "facebook.com",
+    svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#1877F2"/><path d="M57 95V60h11l2-13H57v-8c0-4 2-7 7-7h6V20c-3 0-6-1-10-1-11 0-18 6-18 18v10H31v13h11v35z" fill="#FFF"/></svg>'
+  },
+  {
+    name: "TikTok",
+    domain: "tiktok.com",
+    svg: '<svg viewBox="0 0 100 100"><path d="M58 16v44a15 15 0 1 1-13-15v11a5 5 0 1 0 4 5V16h9c1 9 8 16 17 17v9c-7 0-13-2-17-7z" fill="#25F4EE" transform="translate(-4,-3)"/><path d="M58 16v44a15 15 0 1 1-13-15v11a5 5 0 1 0 4 5V16h9c1 9 8 16 17 17v9c-7 0-13-2-17-7z" fill="#FE2C55" transform="translate(4,3)"/><path d="M58 16v44a15 15 0 1 1-13-15v11a5 5 0 1 0 4 5V16h9c1 9 8 16 17 17v9c-7 0-13-2-17-7z" fill="#111"/></svg>'
+  },
+  {
+    name: "Telegram",
+    domain: "telegram.org",
+    svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#26A5E4"/><polygon points="22,49 74,28 65,73 46,59 38,67 40,54" fill="#FFF"/><polygon points="38,67 46,59 68,33 40,54" fill="#D2E5F1"/></svg>'
+  },
+  {
+    name: "Netflix",
+    domain: "netflix.com",
+    svg: '<svg viewBox="0 0 100 100"><rect x="28" y="14" width="15" height="72" fill="#B1060F"/><rect x="57" y="14" width="15" height="72" fill="#B1060F"/><polygon points="28,14 43,14 72,86 57,86" fill="#E50914"/></svg>'
+  },
+  {
+    name: "Spotify",
+    domain: "spotify.com",
+    svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#1DB954"/><path d="M26 38c16-5 36-3 50 5" fill="none" stroke="#191414" stroke-width="7" stroke-linecap="round"/><path d="M30 52c13-4 29-2 41 4" fill="none" stroke="#191414" stroke-width="6" stroke-linecap="round"/><path d="M33 65c10-3 22-2 32 3" fill="none" stroke="#191414" stroke-width="5" stroke-linecap="round"/></svg>'
+  },
+  {
+    name: "Pinterest",
+    domain: "pinterest.com",
+    svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="#E60023"/><path d="M44 66c-1 6-4 13-8 17-2-10 1-17 3-25-2-4 0-13 5-11 5 2-5 14 2 16 7 2 14-6 14-15 0-10-8-16-18-16-12 0-20 8-20 18 0 4 2 8 4 10 1 1 1 2 1 3l-1 4c-1 1-2 1-3 0-5-3-8-9-8-16 0-13 11-26 28-26 15 0 26 10 26 23 0 15-9 26-21 26-4 0-8-2-9-5z" fill="#FFF"/></svg>'
+  },
+  {
+    name: "Shoppe",
+    domain: "shopee.com.br",
+    svg: '<svg viewBox="0 0 100 100"><path d="M36 28a14 14 0 0 1 28 0" fill="none" stroke="#EE4D2D" stroke-width="5"/><rect x="22" y="26" width="56" height="50" rx="7" fill="#EE4D2D"/><path d="M57 41c-2-3-6-4-10-3-4 1-6 4-5 7 1 3 5 4 9 5 5 1 8 4 8 8 0 5-5 8-11 8-5 0-9-2-11-5" fill="none" stroke="#FFF" stroke-width="4.5" stroke-linecap="round"/><text x="50" y="92" font-size="15" font-weight="bold" fill="#EE4D2D" text-anchor="middle">Shopee</text></svg>'
+  },
+  {
+    name: "Snapchat",
+    domain: "snapchat.com",
+    svg: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="18" fill="#FFFC00" stroke="#333" stroke-width="2"/><path d="M50 22c-12 0-18 8-18 19v8c-3 1-6 2-6 4s4 3 7 4c-1 5-6 9-11 11 2 3 7 5 12 5 2 3 5 5 8 5h16c3 0 6-2 8-5 5 0 10-2 12-5-5-2-10-6-11-11 3-1 7-2 7-4s-3-3-6-4v-8c0-11-6-19-18-19z" fill="#FFF" stroke="#000" stroke-width="3.5" stroke-linejoin="round"/></svg>'
+  },
+  {
+    name: "Messenger",
+    domain: "messenger.com",
+    svg: '<svg viewBox="0 0 100 100"><defs><linearGradient id="msg" x1="0" y1="1" x2="1" y2="0"><stop offset="0%" stop-color="#0099FF"/><stop offset="60%" stop-color="#A033FF"/><stop offset="100%" stop-color="#FF5280"/></linearGradient></defs><path d="M50 12C27 12 10 27 10 48c0 11 5 21 14 27v14l13-7c4 1 8 2 13 2 23 0 40-15 40-36S73 12 50 12z" fill="url(#msg)"/><polygon points="26,57 45,37 55,47 74,37 55,57 45,47" fill="#FFF"/></svg>'
+  },
+  {
+    name: "Linkedin",
+    domain: "linkedin.com",
+    svg: '<svg viewBox="0 0 100 100"><rect x="12" y="12" width="76" height="76" rx="12" fill="#0A66C2"/><circle cx="31" cy="32" r="7" fill="#FFF"/><rect x="25" y="44" width="12" height="32" fill="#FFF"/><path d="M45 44h11v5c2-3 6-6 12-6 9 0 14 6 14 16v17H70V61c0-5-2-8-6-8-4 0-7 3-7 8v15H45V44z" fill="#FFF"/></svg>'
+  },
+  {
+    name: "Disney",
+    domain: "disneyplus.com",
+    svg: '<svg viewBox="0 0 100 100"><path d="M16 65A38 36 0 0 1 84 65" fill="none" stroke="#1E5BC6" stroke-width="3"/><polygon points="46,24 50,14 54,24 58,45 42,45" fill="#1E5BC6"/><polygon points="32,38 35,28 38,38 40,55 30,55" fill="#1E5BC6"/><polygon points="62,38 65,28 68,38 70,55 60,55" fill="#1E5BC6"/><rect x="24" y="45" width="52" height="22" fill="#1E5BC6"/><path d="M44 67v-9a6 6 0 0 1 12 0v9z" fill="#FFF"/><text x="50" y="86" font-size="20" font-weight="bold" font-family="Georgia, serif" fill="#1E5BC6" text-anchor="middle">Disney</text></svg>'
+  },
+  {
+    name: "Firefox",
+    domain: "mozilla.org",
+    svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="52" r="34" fill="#4A148C"/><path d="M78 24c8 12 10 30 2 45-8 16-27 24-45 19-18-5-28-23-24-41 3-13 13-22 22-24-4 8-3 18 4 24 6 6 16 7 23 2 5-4 7-11 4-17 6 2 11 6 14-8z" fill="#FF7139"/><path d="M70 30c9 14 4 34-11 42-13 7-30 3-38-9 8 5 19 5 27-1 8-6 10-17 5-25 5 1 12-1 17-7z" fill="#FFBD4F"/></svg>'
+  },
+  {
+    name: "Apple",
+    domain: "apple.com",
+    svg: '<svg viewBox="0 0 100 100"><path d="M62 12c-5 1-11 4-14 9-3 4-5 10-4 15 6 0 12-3 15-8 3-4 4-10 3-16z" fill="#111"/><path d="M67 36c-7 0-12 4-16 4-4 0-10-4-16-4-11 0-21 9-21 24 0 16 12 34 21 34 4 0 7-3 13-3 6 0 8 3 13 3 9 0 16-12 19-20-8-4-12-12-12-20 0-8 5-14 10-17-4-5-10-7-11-1z" fill="#111"/></svg>'
+  },
+  {
+    name: "Microsoft",
+    domain: "microsoft.com",
+    svg: '<svg viewBox="0 0 100 100"><rect x="14" y="14" width="33" height="33" fill="#F25022"/><rect x="53" y="14" width="33" height="33" fill="#7FBA00"/><rect x="14" y="53" width="33" height="33" fill="#00A4EF"/><rect x="53" y="53" width="33" height="33" fill="#FFB900"/></svg>'
+  },
+  {
+    name: "Chatgpt",
+    domain: "chatgpt.com",
+    svg: '<svg viewBox="0 0 100 100"><g fill="none" stroke="#111" stroke-width="5.5"><circle cx="50" cy="32" r="15"/><circle cx="65" cy="41" r="15"/><circle cx="65" cy="59" r="15"/><circle cx="50" cy="68" r="15"/><circle cx="35" cy="59" r="15"/><circle cx="35" cy="41" r="15"/></g></svg>'
+  },
+  {
+    name: "Amazon",
+    domain: "amazon.com.br",
+    svg: '<svg viewBox="0 0 100 100"><text x="50" y="64" font-size="68" font-weight="bold" font-family="Arial" fill="#111" text-anchor="middle">a</text><path d="M22 74c18 12 38 12 56 0" fill="none" stroke="#FF9900" stroke-width="6" stroke-linecap="round"/><polyline points="70,69 79,73 74,82" fill="none" stroke="#FF9900" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  },
+  {
+    name: "Mercado Livre",
+    domain: "mercadolivre.com.br",
+    svg: '<svg viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="44" ry="32" fill="#FFE600" stroke="#2D3277" stroke-width="4"/><path d="M22 52c8-8 16-8 28 0 12-8 20-8 28 0" fill="none" stroke="#2D3277" stroke-width="5" stroke-linecap="round"/><ellipse cx="50" cy="54" rx="14" ry="9" fill="#FFF" stroke="#2D3277" stroke-width="4"/></svg>'
+  },
+  {
+    name: "Playstation",
+    domain: "playstation.com",
+    svg: '<svg viewBox="0 0 100 100"><path d="M38 18v58l12 4V32c0-3 3-4 5-3 3 1 4 4 4 8v15c9 4 16 0 16-12 0-11-6-17-18-20L38 18z" fill="#111"/><path d="M36 65l-18 6c-4 2-6 5 0 7l18 5v-7l-9-3 9-3v-5z" fill="#111"/><path d="M52 68l10 3-10 3v7l24-7c5-2 4-5-2-7l-22-5v6z" fill="#111"/></svg>'
+  },
+  {
+    name: "Uber",
+    domain: "uber.com",
+    svg: '<svg viewBox="0 0 100 100"><rect x="12" y="12" width="76" height="76" rx="16" fill="#000"/><circle cx="50" cy="50" r="24" fill="#FFF"/><rect x="42" y="42" width="16" height="16" rx="2" fill="#000"/><rect x="12" y="47" width="32" height="6" fill="#000"/></svg>'
+  },
+  {
+    name: "Positivo",
+    domain: "meupositivo.com.br",
+    svg: '<svg viewBox="0 0 100 100"><path d="M40 46V24c0-5 5-9 9-7 4 2 5 8 3 15l-2 8h22c5 0 8 4 7 9l-5 24c-1 4-5 7-9 7H38c-4 0-8-3-8-8V50c0-3 4-4 10-4z" fill="none" stroke="#00A859" stroke-width="5" stroke-linejoin="round"/><rect x="20" y="46" width="10" height="36" rx="3" fill="none" stroke="#0072BC" stroke-width="5"/><path d="M44 56h24M44 65h22M44 74h18" stroke="#F58220" stroke-width="4" stroke-linecap="round"/></svg>'
+  },
+  {
+    name: "Colégio Sena de Miranda",
+    domain: "colegiosenademiranda.com.br",
+    svg: '<svg viewBox="0 0 100 100"><ellipse cx="50" cy="52" rx="43" ry="25" fill="none" stroke="#1B365D" stroke-width="5" transform="rotate(-12 50 52)"/><ellipse cx="50" cy="52" rx="43" ry="22" fill="#FFF" stroke="#2B547E" stroke-width="4" transform="rotate(6 50 52)"/><text x="50" y="61" font-size="28" font-weight="bold" font-family="Arial Black, Arial" fill="#1B365D" text-anchor="middle">CSM</text></svg>'
+  },
+  {
+    name: "Xbox",
+    domain: "xbox.com",
+    svg: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="14" fill="#107C10"/><circle cx="50" cy="50" r="30" fill="#FFF"/><path d="M30 28c12 10 28 26 40 44M70 28C58 38 42 54 30 72" stroke="#107C10" stroke-width="8" stroke-linecap="round"/></svg>'
+  },
+  {
+    name: "Google",
+    domain: "google.com",
+    svg: '<svg viewBox="0 0 100 100"><path d="M84 51c0-3 0-5-1-7H50v14h20c-1 5-4 10-9 13l12 9c7-7 11-17 11-29z" fill="#4285F4"/><path d="M50 86c10 0 18-3 24-9l-12-9c-3 2-7 4-12 4-9 0-17-6-20-15H17v10c6 12 18 19 33 19z" fill="#34A853"/><path d="M30 57c-2-5-2-9 0-14V33H17c-6 11-6 23 0 34l13-10z" fill="#FBBC05"/><path d="M50 28c5 0 10 2 14 5l10-10c-6-6-15-9-24-9-15 0-27 7-33 19l13 10c3-9 11-15 20-15z" fill="#EA4335"/></svg>'
+  },
+  {
+    name: "Roblox",
+    domain: "roblox.com",
+    svg: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="14" fill="#2364AA"/><g transform="rotate(15 50 50)"><rect x="24" y="24" width="52" height="52" fill="#FFF"/><rect x="42" y="42" width="16" height="16" fill="#2364AA"/></g></svg>'
+  },
+  {
+    name: "Minecraft",
+    domain: "minecraft.net",
+    svg: '<svg viewBox="0 0 100 100"><polygon points="50,12 86,30 50,48 14,30" fill="#63A832"/><polygon points="14,30 50,48 50,88 14,70" fill="#865934"/><polygon points="86,30 50,48 50,88 86,70" fill="#684427"/><polygon points="14,30 50,48 50,58 14,40" fill="#4E8826"/><polygon points="86,30 50,48 50,58 86,40" fill="#3E6E1E"/></svg>'
+  },
+  {
+    name: "Super Mario",
+    domain: "mario.nintendo.com",
+    svg: '<svg viewBox="0 0 100 100"><path d="M20 52c0-20 14-32 30-32s30 12 30 32H20z" fill="#E52521"/><rect x="14" y="48" width="72" height="10" rx="5" fill="#C61A17"/><circle cx="50" cy="36" r="11" fill="#FFF"/><text x="50" y="41" font-size="15" font-weight="bold" fill="#E52521" text-anchor="middle">M</text><path d="M26 72c6-6 14-4 24 2 10-6 18-8 24-2 2 8-8 12-16 8-4-2-6-4-8-5-2 1-4 3-8 5-8 4-18 0-16-8z" fill="#222"/></svg>'
+  },
+  {
+    name: "Subway Surfers",
+    domain: "subwaysurfers.com",
+    svg: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="16" fill="#F39C12" stroke="#27AE60" stroke-width="5"/><rect x="20" y="20" width="60" height="60" rx="10" fill="#2980B9"/><path d="M30 48c0-12 9-20 20-20s20 8 20 20H30z" fill="#E74C3C"/><ellipse cx="50" cy="56" rx="16" ry="14" fill="#F5CBA7"/><circle cx="44" cy="54" r="3" fill="#2C3E50"/><circle cx="56" cy="54" r="3" fill="#2C3E50"/><path d="M44 63c4 3 8 3 12 0" fill="none" stroke="#2C3E50" stroke-width="3" stroke-linecap="round"/></svg>'
+  },
+  {
+    name: "Pokemon",
+    domain: "pokemon.com",
+    svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#FFF" stroke="#111" stroke-width="6"/><path d="M6 50A44 44 0 0 1 94 50Z" fill="#EE1515" stroke="#111" stroke-width="6"/><line x1="6" y1="50" x2="94" y2="50" stroke="#111" stroke-width="8"/><circle cx="50" cy="50" r="14" fill="#FFF" stroke="#111" stroke-width="6"/><circle cx="50" cy="50" r="6" fill="#FFF" stroke="#111" stroke-width="2"/></svg>'
+  },
+  {
+    name: "Brawl Stars",
+    domain: "supercell.com",
+    svg: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="16" fill="#F39C12"/><circle cx="50" cy="48" r="28" fill="#F1C40F" stroke="#111" stroke-width="5"/><rect x="38" y="68" width="24" height="12" rx="4" fill="#F1C40F" stroke="#111" stroke-width="4"/><circle cx="40" cy="48" r="6" fill="#111"/><circle cx="60" cy="48" r="6" fill="#111"/><polygon points="50,54 46,61 54,61" fill="#111"/></svg>'
+  },
+  {
+    name: "Alexa",
+    domain: "alexa.amazon.com",
+    svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="36" fill="none" stroke="#00CAFF" stroke-width="12"/><path d="M32 80l-8 10 18-6" fill="#00CAFF"/></svg>'
+  },
+  {
+    name: "Duolingo",
+    domain: "duolingo.com",
+    svg: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="20" fill="#58CC02"/><circle cx="36" cy="48" r="14" fill="#FFF"/><circle cx="64" cy="48" r="14" fill="#FFF"/><circle cx="36" cy="48" r="6" fill="#2B2B2B"/><circle cx="64" cy="48" r="6" fill="#2B2B2B"/><polygon points="43,58 57,58 50,70" fill="#FF9600"/></svg>'
+  },
+  {
+    name: "Xiaomi",
+    domain: "mi.com",
+    svg: '<svg viewBox="0 0 100 100"><rect x="12" y="12" width="76" height="76" rx="20" fill="#FF6700"/><path d="M26 68V34h22c6 0 10 4 10 10v24h-8V44c0-2-1-3-3-3H34v27h-8zm16 0V48h8v20h-8zm24 0V34h8v34h-8z" fill="#FFF"/></svg>'
+  },
+  {
+    name: "Lego",
+    domain: "lego.com",
+    svg: '<svg viewBox="0 0 100 100"><rect x="36" y="12" width="28" height="12" rx="3" fill="#F1C40F" stroke="#222" stroke-width="4"/><rect x="22" y="24" width="56" height="56" rx="12" fill="#F1C40F" stroke="#222" stroke-width="4"/><rect x="34" y="80" width="32" height="8" fill="#F1C40F" stroke="#222" stroke-width="4"/><circle cx="39" cy="46" r="4.5" fill="#222"/><circle cx="61" cy="46" r="4.5" fill="#222"/><path d="M36 60c6 8 22 8 28 0" fill="none" stroke="#222" stroke-width="4" stroke-linecap="round"/></svg>'
+  },
+  {
+    name: "Árvore de livros",
+    domain: "arvore.com.br",
+    svg: '<svg viewBox="0 0 100 100"><rect x="10" y="10" width="80" height="80" rx="14" fill="#2AD1B5"/><circle cx="20" cy="54" r="10" fill="#E8B49A" stroke="#7A3E1D" stroke-width="3"/><circle cx="80" cy="54" r="10" fill="#E8B49A" stroke="#7A3E1D" stroke-width="3"/><path d="M36 90l8-18h12l8 18z" fill="#7A3E1D"/><circle cx="50" cy="55" r="24" fill="#7A3E1D"/><ellipse cx="50" cy="58" rx="19" ry="14" fill="#E8B49A"/><circle cx="42" cy="54" r="3" fill="#222"/><circle cx="58" cy="54" r="3" fill="#222"/><path d="M46 63c3 2 6 2 8 0" fill="none" stroke="#222" stroke-width="2.5" stroke-linecap="round"/><path d="M50 31c-6-12-16-6-6 0 2-10 14-10 6 0z" fill="#6B3215"/></svg>'
+  },
+  {
+    name: "Ifood",
+    domain: "ifood.com.br",
+    svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#EA1D2C"/><ellipse cx="39" cy="40" rx="6" ry="9" transform="rotate(15 39 40)" fill="#FFF"/><ellipse cx="59" cy="40" rx="6" ry="9" transform="rotate(15 59 40)" fill="#FFF"/><path d="M30 58c10 12 28 12 38 0" fill="none" stroke="#FFF" stroke-width="6" stroke-linecap="round"/><polyline points="61,55 70,57 67,66" fill="none" stroke="#FFF" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+  },
+  {
+    name: "Globoplay",
+    domain: "globoplay.globo.com",
+    svg: '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#FB0234"/><rect x="26" y="32" width="48" height="36" rx="10" fill="#FFF"/><polygon points="44,41 44,59 60,50" fill="#FB0234"/></svg>'
+  }
+];
+
+// Estado do Jogo
+var shuffledList = [];
+var currentWordIndex = 0;
+var currentCharIndex = 0;
+var score = 0;
+var totalKeystrokes = 0;
+var correctKeystrokes = 0;
+var isTransitioning = false;
+
+// Controle dos 10 segundos para revelar o nome da marca
+var hintSecondsLeft = 10;
+var hintRevealed = false;
+var hintTimerInterval = null;
+
+// Normaliza letra (remove acentos e converte para minúscula)
+function normalizeChar(ch) {
+  if (!ch) return "";
+  var lower = ch.toLowerCase();
+  var map = {
+    "á": "a", "à": "a", "ã": "a", "â": "a",
+    "é": "e", "ê": "e",
+    "í": "i",
+    "ó": "o", "ô": "o", "õ": "o",
+    "ú": "u", "ü": "u",
+    "ç": "c"
+  };
+  return map[lower] || lower;
+}
+
+// Efeito sonoro simples
+function playBeep(freq, duration) {
+  try {
+    var AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    if (!window._gameAudioCtx) {
+      window._gameAudioCtx = new AudioCtx();
+    }
+    var ctx = window._gameAudioCtx;
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    gain.gain.value = 0.08;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    setTimeout(function() {
+      try { osc.stop(); } catch (e) {}
+    }, duration);
+  } catch (e) {}
+}
+
+// Embaralha array (Fisher-Yates ES5)
+function shuffleArray(arr) {
+  var copy = arr.slice();
+  for (var i = copy.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var temp = copy[i];
+    copy[i] = copy[j];
+    copy[j] = temp;
+  }
+  return copy;
+}
+
+// Monta teclado virtual QWERTY (sem acender teclas)
+function buildKeyboard() {
+  var rows = [
+    ["Q","W","E","R","T","Y","U","I","O","P"],
+    ["A","S","D","F","G","H","J","K","L"],
+    ["Z","X","C","V","B","N","M"],
+    ["ESPAÇO"]
+  ];
+  var container = document.getElementById("virtualKeyboard");
+  var html = "";
+  for (var r = 0; r < rows.length; r++) {
+    html += '<div class="kb-row">';
+    for (var k = 0; k < rows[r].length; k++) {
+      var keyLabel = rows[r][k];
+      if (keyLabel === "ESPAÇO") {
+        html += '<div class="kb-key kb-space" onclick="handleVirtualKey(\' \')">ESPAÇO</div>';
+      } else {
+        html += '<div class="kb-key" onclick="handleVirtualKey(\'' + keyLabel + '\')">' + keyLabel + '</div>';
+      }
+    }
+    html += '</div>';
+  }
+  container.innerHTML = html;
+}
+
+function handleVirtualKey(ch) {
+  processTypedChar(ch);
+}
+
+// Inicia a contagem de 10 segundos para mostrar o nome da logo
+function startWordHintCountdown() {
+  if (hintTimerInterval) {
+    clearInterval(hintTimerInterval);
+    hintTimerInterval = null;
+  }
+  hintSecondsLeft = 10;
+  hintRevealed = false;
+  renderGuideAndBoxes();
+
+  hintTimerInterval = setInterval(function() {
+    hintSecondsLeft--;
+    if (hintSecondsLeft <= 0) {
+      clearInterval(hintTimerInterval);
+      hintTimerInterval = null;
+      hintRevealed = true;
+      renderGuideAndBoxes();
+    } else {
+      renderGuideAndBoxes();
+    }
+  }, 1000);
+}
+
+// Renderiza a logo (usa o SVG fiel imediatamente e carrega ícone oficial caso haja internet)
+function renderBrandLogo(brand) {
+  var container = document.getElementById("logoContainer");
+  container.innerHTML = brand.svg;
+  if (brand.domain && navigator.onLine !== false) {
+    var img = new Image();
+    img.onload = function() {
+      if (shuffledList[currentWordIndex] && shuffledList[currentWordIndex].name === brand.name && img.width >= 32) {
+        container.innerHTML = "";
+        container.appendChild(img);
+      }
+    };
+    img.src = "https://www.google.com/s2/favicons?sz=128&domain=" + brand.domain;
+  }
+}
+
+// Carrega a palavra atual
+function loadCurrentWord() {
+  if (currentWordIndex >= shuffledList.length) {
+    endGame();
+    return;
+  }
+
+  currentCharIndex = 0;
+  isTransitioning = false;
+  var brand = shuffledList[currentWordIndex];
+
+  document.getElementById("progressText").innerHTML = "Logo " + (currentWordIndex + 1) + " de " + shuffledList.length;
+  document.getElementById("feedbackMsg").innerHTML = "";
+
+  renderBrandLogo(brand);
+  startWordHintCountdown();
+}
+
+function renderGuideAndBoxes() {
+  var brand = shuffledList[currentWordIndex];
+  if (!brand) return;
+  var word = brand.name;
+  var guideEl = document.getElementById("wordGuide");
+
+  // Só mostra o nome da marca após 10 segundos
+  if (hintRevealed) {
+    guideEl.className = "word-guide";
+    var guideHtml = "";
+    for (var i = 0; i < word.length; i++) {
+      var ch = word.charAt(i);
+      if (i < currentCharIndex) {
+        guideHtml += '<span class="guide-char-done">' + ch + '</span>';
+      } else if (i === currentCharIndex) {
+        guideHtml += '<span class="guide-char-current">' + ch + '</span>';
+      } else {
+        guideHtml += '<span>' + ch + '</span>';
+      }
+    }
+    guideEl.innerHTML = guideHtml;
+  } else {
+    guideEl.className = "word-guide waiting-guide";
+    guideEl.innerHTML = 'Qual é o nome desta marca? <span class="countdown-pill">Nome em ' + hintSecondsLeft + 's</span>';
+  }
+
+  // Caixinhas de letras separadas por palavras
+  var boxesEl = document.getElementById("letterBoxes");
+  var html = '<div class="word-group">';
+  for (var j = 0; j < word.length; j++) {
+    var c = word.charAt(j);
+    if (c === " ") {
+      html += '</div><div class="word-group">';
+    } else {
+      var slotClass = "letter-slot";
+      var displayChar = "";
+      if (j < currentCharIndex) {
+        slotClass += " filled-slot";
+        displayChar = c;
+      } else if (j === currentCharIndex) {
+        slotClass += " active-slot";
+      }
+      html += '<div class="' + slotClass + '" id="slot-' + j + '">' + displayChar + '</div>';
+    }
+  }
+  html += '</div>';
+  boxesEl.innerHTML = html;
+}
+
+// Processa a letra digitada pelo aluno
+function processTypedChar(typedChar) {
+  if (isTransitioning) return;
+  var brand = shuffledList[currentWordIndex];
+  if (!brand) return;
+
+  var word = brand.name;
+  var expectedChar = word.charAt(currentCharIndex);
+
+  if (expectedChar === " " && typedChar === " ") {
+    currentCharIndex++;
+    renderGuideAndBoxes();
+    return;
+  }
+
+  if (expectedChar === " " && typedChar !== " ") {
+    currentCharIndex++;
+    expectedChar = word.charAt(currentCharIndex);
+  }
+
+  totalKeystrokes++;
+
+  if (normalizeChar(typedChar) === normalizeChar(expectedChar)) {
+    correctKeystrokes++;
+    currentCharIndex++;
+    playBeep(660, 60);
+
+    while (currentCharIndex < word.length && word.charAt(currentCharIndex) === " ") {
+      currentCharIndex++;
+    }
+
+    renderGuideAndBoxes();
+
+    if (currentCharIndex >= word.length) {
+      isTransitioning = true;
+      if (hintTimerInterval) {
+        clearInterval(hintTimerInterval);
+        hintTimerInterval = null;
+      }
+      score++;
+      document.getElementById("scoreDisplay").innerHTML = score;
+      document.getElementById("feedbackMsg").innerHTML = "&#10004; Muito bem! " + word + "!";
+      playBeep(880, 150);
+
+      setTimeout(function() {
+        currentWordIndex++;
+        loadCurrentWord();
+      }, 650);
+    }
+  } else {
+    playBeep(220, 90);
+    var activeSlot = document.getElementById("slot-" + currentCharIndex);
+    if (activeSlot && activeSlot.className.indexOf("error-slot") === -1) {
+      activeSlot.className += " error-slot";
+      setTimeout(function() {
+        if (activeSlot) {
+          activeSlot.className = activeSlot.className.replace(" error-slot", "");
+        }
+      }, 250);
+    }
+  }
+}
+
+// Finaliza partida
+function endGame() {
+  if (hintTimerInterval) {
+    clearInterval(hintTimerInterval);
+    hintTimerInterval = null;
+  }
+  isTransitioning = true;
+
+  var overlay = document.getElementById("endOverlay");
+  var finalScore = document.getElementById("finalScoreText");
+  var accText = document.getElementById("accuracyText");
+
+  finalScore.innerHTML = score + " de " + shuffledList.length + " palavras";
+  var acc = totalKeystrokes > 0 ? Math.round((correctKeystrokes / totalKeystrokes) * 100) : 100;
+  accText.innerHTML = "Precisão nas teclas: <strong>" + acc + "%</strong>";
+
+  overlay.style.display = "flex";
+}
+
+// Reinicia todo o jogo
+function restartGame() {
+  if (hintTimerInterval) {
+    clearInterval(hintTimerInterval);
+    hintTimerInterval = null;
+  }
+  document.getElementById("endOverlay").style.display = "none";
+
+  shuffledList = shuffleArray(BRANDS);
+  currentWordIndex = 0;
+  currentCharIndex = 0;
+  score = 0;
+  totalKeystrokes = 0;
+  correctKeystrokes = 0;
+
+  document.getElementById("scoreDisplay").innerHTML = "0";
+  loadCurrentWord();
+}
+
+// Captura teclado físico (compatível com Pale Moon/Windows 7/Chrome)
+document.onkeydown = function(evt) {
+  evt = evt || window.event;
+  if (evt.ctrlKey || evt.altKey || evt.metaKey) return;
+
+  var key = evt.key;
+  var code = evt.keyCode || evt.which;
+
+  if (code === 32) {
+    if (evt.preventDefault) evt.preventDefault();
+    processTypedChar(" ");
+    return false;
+  }
+
+  if (key && key.length === 1) {
+    var norm = normalizeChar(key);
+    if ((norm >= "a" && norm <= "z") || norm === " ") {
+      processTypedChar(key);
+    }
+  } else if (code >= 65 && code <= 90) {
+    var letter = String.fromCharCode(code);
+    processTypedChar(letter);
+  }
+};
+
+window.onload = function() {
+  buildKeyboard();
+  restartGame();
+};
+</script>
+</body>
+</html>
